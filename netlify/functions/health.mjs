@@ -1,8 +1,8 @@
 // GET /api/health — diagnostics for setup problems. Never reveals the key itself.
-import { json, getCredits, SunoError } from '../lib/suno.mjs';
+import { json, getCredits, SunoError, rawApiKey } from '../lib/suno.mjs';
 
 export default async () => {
-  const raw = process.env.SUNO_API_KEY || '';
+  const raw = rawApiKey() || '';
   const key = raw.trim();
   const report = {
     functionsDeployed: true,

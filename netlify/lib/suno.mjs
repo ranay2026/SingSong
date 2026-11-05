@@ -35,8 +35,15 @@ export function json(body, status = 200) {
   });
 }
 
+/** Raw key value. Accepts any capitalisation (SUNO_API_KEY, Suno_API_Key, …). */
+export function rawApiKey() {
+  if (process.env.SUNO_API_KEY) return process.env.SUNO_API_KEY;
+  const name = Object.keys(process.env).find((k) => k.toUpperCase() === 'SUNO_API_KEY');
+  return name ? process.env[name] : '';
+}
+
 function apiKey() {
-  return (process.env.SUNO_API_KEY || '').trim();
+  return (rawApiKey() || '').trim();
 }
 
 /**
