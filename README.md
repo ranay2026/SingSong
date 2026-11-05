@@ -4,9 +4,11 @@ A small web app that makes AI songs with the [sunoapi.org](https://sunoapi.org) 
 
 - **✨ Describe it**: type an idea ("a birthday song for Maya who loves tacos") and Suno writes the lyrics and music.
 - **✍️ Write it**: your own title, style and lyrics, or an instrumental.
-- **🎤 From my voice** (bonus): record a voice note in the browser or upload one (mp3, m4a, wav, ogg/opus, webm), then either
-  - **Turn it into a song**: keeps your melody and re-records it as a full production (`/api/v1/generate/upload-cover`), or
-  - **Add music behind my voice**: keeps your real vocals and builds a backing track (`/api/v1/generate/add-instrumental`).
+- **🎤 From my voice**: record a voice note in the browser or upload one (mp3, m4a, wav, ogg/opus, webm), describe what you want ("use my hum as the chorus", "build a bridge"), optionally paste lyrics, then pick:
+  - **Full song from my idea** (default): a complete, full-length new song using the voice note as an audio reference (`/api/v1/generate` with `audioUrls`)
+  - **Keep my melody**: re-sings your exact tune, with a chosen length of 1 to 4 minutes (`/api/v1/generate/upload-cover` + `duration`)
+  - **Continue it**: keeps your recording and writes what comes next (`/api/v1/generate/upload-extend`)
+  - **Music behind my voice**: keeps your real vocals and adds a backing track (`/api/v1/generate/add-instrumental`)
 
 Each request returns two takes. You can play them, read the lyrics and download them. Your song history is saved in your browser.
 

@@ -2,7 +2,9 @@
 // Modes:
 //   simple     → /api/v1/generate (customMode: false), lyrics written by Suno
 //   custom     → /api/v1/generate (customMode: true), your own title/style/lyrics
-//   cover      → /api/v1/generate/upload-cover, turns a voice note into a full song (keeps the melody)
+//   inspire    → /api/v1/generate with audioUrls, a full-length new song guided by a voice note + description
+//   cover      → /api/v1/generate/upload-cover, re-records the voice note keeping its melody (optional duration)
+//   extend     → /api/v1/generate/upload-extend, continues the song from the end of the voice note
 //   accompany  → /api/v1/generate/add-instrumental, keeps your voice and adds backing music
 import { guard, suno, json, handleError, callbackUrl } from '../lib/suno.mjs';
 import { buildRequest } from '../lib/tasks.mjs';

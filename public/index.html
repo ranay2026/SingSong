@@ -79,28 +79,59 @@
             <div class="voice-meta"><span id="voiceInfo"></span><button type="button" class="link" id="clearVoice">Remove</button></div>
           </div>
 
+          <label for="voiceDesc">Describe what you want</label>
+          <textarea id="voiceDesc" maxlength="3000" rows="3" placeholder="Use my hum as the chorus melody. Make it an upbeat indie-pop song about leaving home, with a big final chorus."></textarea>
+          <div class="chips" data-target="voiceDesc" data-append>
+            <button type="button" class="chip">Use my recording as the chorus</button>
+            <button type="button" class="chip">Expand my lyrics into full verses and a chorus</button>
+            <button type="button" class="chip">Build a bridge that lifts into a big final chorus</button>
+            <button type="button" class="chip">Keep my melody but make it a full band arrangement</button>
+          </div>
+
           <fieldset class="choice">
             <legend>What should we do with it?</legend>
             <label class="option">
-              <input type="radio" name="voiceMode" value="cover" checked />
-              <span><strong>Turn it into a song</strong><small>Keeps your melody, re-sings it as a fully produced track.</small></span>
+              <input type="radio" name="voiceMode" value="inspire" checked />
+              <span><strong>Full song from my idea</strong><small>A complete, full-length song built from your recording and description.</small></span>
+            </label>
+            <label class="option">
+              <input type="radio" name="voiceMode" value="cover" />
+              <span><strong>Keep my melody</strong><small>Re-sings your exact tune as a produced track. Choose a length below.</small></span>
+            </label>
+            <label class="option">
+              <input type="radio" name="voiceMode" value="extend" />
+              <span><strong>Continue it</strong><small>Keeps your recording and writes what comes next — the next verse, a bridge, the chorus.</small></span>
             </label>
             <label class="option">
               <input type="radio" name="voiceMode" value="accompany" />
-              <span><strong>Add music behind my voice</strong><small>Keeps your actual vocals and builds a backing track.</small></span>
+              <span><strong>Music behind my voice</strong><small>Keeps your actual vocals and builds a backing track.</small></span>
             </label>
           </fieldset>
 
-          <label for="voiceStyle">Style</label>
+          <label for="voiceStyle">Style <span class="opt">(optional)</span></label>
           <input id="voiceStyle" maxlength="1000" placeholder="soulful pop, piano and strings" />
-          <label for="voiceTitle">Title <span class="opt">(optional)</span></label>
-          <input id="voiceTitle" maxlength="80" placeholder="My Voice Note Song" />
-          <div data-only="cover">
-            <label for="voiceLyrics">Lyrics <span class="opt">(optional — leave blank to keep it wordless or let Suno decide)</span></label>
-            <textarea id="voiceLyrics" maxlength="5000" rows="4" placeholder="[Verse]&#10;…"></textarea>
+          <div data-hide-for-voice="inspire">
+            <label for="voiceTitle">Title <span class="opt">(optional)</span></label>
+            <input id="voiceTitle" maxlength="80" placeholder="My Voice Note Song" />
           </div>
-          <label for="audioWeight">Stick to my recording: <output id="audioWeightOut">65%</output></label>
-          <input type="range" id="audioWeight" min="0" max="100" value="65" />
+          <div data-hide-for-voice="accompany">
+            <label for="voiceLyrics">Lyrics <span class="opt" id="voiceLyricsHint">(optional — paste what you have and Suno will build on it)</span></label>
+            <textarea id="voiceLyrics" maxlength="5000" rows="5" placeholder="[Verse]&#10;Packed my bags at half past two&#10;&#10;[Chorus]&#10;…"></textarea>
+          </div>
+          <div data-only-voice="cover">
+            <label for="voiceLength">Song length</label>
+            <select id="voiceLength">
+              <option value="180">Full song (~3 min)</option>
+              <option value="240">Long (~4 min)</option>
+              <option value="120">Medium (~2 min)</option>
+              <option value="60">Short (~1 min)</option>
+              <option value="">Same as my recording</option>
+            </select>
+          </div>
+          <div data-hide-for-voice="inspire">
+            <label for="audioWeight">Stick to my recording: <output id="audioWeightOut">65%</output></label>
+            <input type="range" id="audioWeight" min="0" max="100" value="65" />
+          </div>
         </div>
 
         <details class="advanced">

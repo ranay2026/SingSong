@@ -10,6 +10,12 @@ function isHttpUrl(value) {
   }
 }
 
+export const VOICE_MODES = ['inspire', 'cover', 'extend', 'accompany'];
+
+function joinStyle(style, notes) {
+  return [style, notes].filter(Boolean).join('. ').slice(0, 1000);
+}
+
 export function buildRequest(input, cbUrl) {
   const mode = input.mode;
   const model = MODELS.includes(input.model) ? input.model : 'V6';
@@ -50,28 +56,62 @@ export function buildRequest(input, cbUrl) {
     return { path: '/api/v1/generate', body };
   }
 
-  if (mode === 'cover' || mode === 'accompany') {
+  if (VOICE_MODES.includes(mode)) {
     const uploadUrl = clean(input.uploadUrl, 2000);
     if (!isHttpUrl(uploadUrl)) throw new Error('Upload or record a voice note first.');
     const audioWeight = clamp01(input.audioWeight);
+    const description = clean(input.description, 3000);
+    // Endpoints other than "inspire" have no free-text prompt field, so the
+    // description is folded into the style text, which Suno reads as guidance.
+    const styleWithNotes = joinStyle(style, description);
+
+    if (mode === 'inspire') {
+      // Full-length NEW song, using the voice note as an audio reference.
+      // Non-custom mode: prompt = the idea, lyrics = optional attachment Suno can expand on.
+      const body = { customMode: false, instrumental, model, audioUrls: [uploadUrl], callBackUrl: cbUrl };
+      const prompt = clean([description, title ? `Title: ${title}` : ''].filter(Boolean).join('\n'), 3000);
+      if (prompt) body.prompt = prompt;
+      if (style) body.style = style;
+      if (lyrics && !instrumental) body.lyrics = lyrics;
+      return { path: '/api/v1/generate', body };
+    }
 
     if (mode === 'cover') {
+      // Re-records the voice note keeping its melody. `duration` lets it run longer than the clip.
       const body = { uploadUrl, model, instrumental, callBackUrl: cbUrl };
       if (title) body.title = title;
-      if (style) body.style = style;
+      if (styleWithNotes) body.style = styleWithNotes;
       if (lyrics && !instrumental) body.lyrics = lyrics;
       if (negativeTags) body.negativeTags = negativeTags;
       if (vocalGender && !instrumental) body.vocalGender = vocalGender;
       if (audioWeight !== undefined) body.audioWeight = audioWeight;
+      const duration = Math.round(Number(input.duration));
+      if (Number.isFinite(duration) && duration >= 10) body.duration = Math.min(360, duration);
       return { path: '/api/v1/generate/upload-cover', body };
     }
 
-    // add-instrumental requires title, tags and negativeTags.
+    if (mode === 'extend') {
+      // Keeps the voice note and continues the song from where it ends (e.g. into a bridge/chorus).
+      const body = { uploadUrl, model, instrumental, callBackUrl: cbUrl };
+      const extTitle = clean(input.title, 100);
+      if (extTitle) body.title = extTitle;
+      if (styleWithNotes) body.style = styleWithNotes;
+      if (lyrics && !instrumental) body.lyrics = lyrics;
+      if (negativeTags) body.negativeTags = negativeTags;
+      if (vocalGender && !instrumental) body.vocalGender = vocalGender;
+      if (audioWeight !== undefined) body.audioWeight = audioWeight;
+      const src = Number(input.sourceDuration);
+      // continueAt must be > 0 and < the clip length; continue from just before the end.
+      if (Number.isFinite(src) && src > 2) body.continueAt = Math.floor((src - 0.5) * 10) / 10;
+      return { path: '/api/v1/generate/upload-extend', body };
+    }
+
+    // accompany → add-instrumental requires title, tags and negativeTags.
     const body = {
       uploadUrl,
       model,
       title: title || 'My SingSong',
-      tags: style || 'acoustic pop, warm, full band',
+      tags: styleWithNotes || 'acoustic pop, warm, full band',
       negativeTags: negativeTags || 'noise, distortion, low quality',
       callBackUrl: cbUrl,
     };

@@ -97,10 +97,17 @@ $$('.tab').forEach((t) => t.addEventListener('click', () => setMode(t.dataset.mo
 function voiceMode() {
   return $('input[name="voiceMode"]:checked').value;
 }
+const LYRICS_HINT = {
+  inspire: '(optional — paste what you have and Suno will expand on it)',
+  cover: '(optional — sung as written over your melody)',
+  extend: '(optional — lyrics for the part that comes next, e.g. a [Bridge])',
+};
 function syncVoiceMode() {
   const vm = mode === 'voice' ? voiceMode() : null;
-  $$('[data-only="cover"]').forEach((el) => (el.hidden = vm !== 'cover'));
+  $$('[data-only-voice]').forEach((el) => (el.hidden = vm !== el.dataset.onlyVoice));
+  $$('[data-hide-for-voice]').forEach((el) => (el.hidden = vm === el.dataset.hideForVoice));
   $$('[data-hide-for="accompany"]').forEach((el) => (el.hidden = vm === 'accompany'));
+  if (vm && LYRICS_HINT[vm]) $('#voiceLyricsHint').textContent = LYRICS_HINT[vm];
 }
 $$('input[name="voiceMode"]').forEach((r) => r.addEventListener('change', syncVoiceMode));
 
@@ -110,7 +117,12 @@ $$('.chips').forEach((group) => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
     const target = $('#' + group.dataset.target);
-    target.value = chip.textContent;
+    if ('append' in group.dataset && target.value.trim()) {
+      const cur = target.value.trim();
+      target.value = `${cur}${/[.!?]$/.test(cur) ? '' : '.'} ${chip.textContent}.`;
+    } else {
+      target.value = chip.textContent + ('append' in group.dataset ? '.' : '');
+    }
     target.focus();
   });
 });
@@ -243,15 +255,21 @@ function collect() {
   }
   if (!voice) throw new Error('Record or upload a voice note first.');
   const vm = voiceMode();
+  const description = $('#voiceDesc').value.trim();
+  const title = $('#voiceTitle').value.trim();
+  const VOICE_LABEL = { inspire: 'Full song from voice note', cover: 'Voice note melody', extend: 'Voice note, continued', accompany: 'Voice note + backing track' };
   return {
     ...common,
     mode: vm,
     instrumental: vm === 'accompany' ? false : common.instrumental,
+    description,
     style: $('#voiceStyle').value,
-    title: $('#voiceTitle').value,
-    lyrics: vm === 'cover' ? $('#voiceLyrics').value : '',
-    audioWeight: Number(weight.value) / 100,
-    label: $('#voiceTitle').value.trim() || (vm === 'cover' ? 'Voice note → song' : 'Voice note + backing track'),
+    title: vm === 'inspire' ? '' : title,
+    lyrics: vm === 'accompany' ? '' : $('#voiceLyrics').value,
+    duration: vm === 'cover' && $('#voiceLength').value ? Number($('#voiceLength').value) : undefined,
+    sourceDuration: voice.duration || undefined,
+    audioWeight: vm === 'inspire' ? undefined : Number(weight.value) / 100,
+    label: (vm !== 'inspire' && title) || description.slice(0, 80) || VOICE_LABEL[vm],
   };
 }
 
@@ -267,7 +285,7 @@ $('#form').addEventListener('submit', async (e) => {
   }
 
   try {
-    if (input.mode === 'cover' || input.mode === 'accompany') {
+    if (['inspire', 'cover', 'extend', 'accompany'].includes(input.mode)) {
       if (!voice.url) {
         setBusy(true, 'Uploading voice note…');
         const base64Data = await blobToDataUrl(voice.blob);
@@ -299,7 +317,7 @@ function saveJobs() {
   $('#resultsHead').hidden = jobs.length === 0;
 }
 
-const MODE_LABEL = { simple: 'Described', custom: 'Written', cover: 'From voice', accompany: 'Voice + music' };
+const MODE_LABEL = { simple: 'Described', custom: 'Written', inspire: 'From voice', cover: 'Voice melody', extend: 'Voice, continued', accompany: 'Voice + music' };
 const STATUS_LABEL = {
   PENDING: ['Queued', 10],
   TEXT_SUCCESS: ['Writing lyrics', 35],
