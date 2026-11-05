@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>SingSong — make a song in seconds</title>
+  <meta name="description" content="Describe a song, write your own lyrics, or hum a voice note — SingSong turns it into music." />
+  <meta name="theme-color" content="#0f0d1a" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B5%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo" aria-hidden="true">♪</span> SingSong</div>
+    <div class="credits" id="credits" title="Remaining sunoapi.org credits">… credits</div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>Make a song in seconds.</h1>
+      <p>Describe it, write it, or sing it into your phone — we'll do the rest.</p>
+    </section>
+
+    <section class="card composer">
+      <div class="tabs" role="tablist">
+        <button class="tab active" role="tab" data-mode="simple" aria-selected="true">✨ Describe it</button>
+        <button class="tab" role="tab" data-mode="custom" aria-selected="false">✍️ Write it</button>
+        <button class="tab" role="tab" data-mode="voice" aria-selected="false">🎤 From my voice</button>
+      </div>
+
+      <form id="form" novalidate>
+        <!-- Describe it -->
+        <div class="panel" data-panel="simple">
+          <label for="prompt">What should the song be about?</label>
+          <textarea id="prompt" maxlength="3000" rows="4" placeholder="An upbeat birthday song for my sister Maya who loves surfing and tacos"></textarea>
+          <div class="chips" data-target="prompt">
+            <button type="button" class="chip">Lo-fi study beat about rainy Sundays</button>
+            <button type="button" class="chip">Epic movie trailer about my cat</button>
+            <button type="button" class="chip">90s R&amp;B love song for my partner</button>
+          </div>
+          <label for="simpleStyle">Style <span class="opt">(optional)</span></label>
+          <input id="simpleStyle" maxlength="1000" placeholder="pop punk, energetic, female vocals" />
+        </div>
+
+        <!-- Write it -->
+        <div class="panel" data-panel="custom" hidden>
+          <label for="title">Title <span class="opt">(optional)</span></label>
+          <input id="title" maxlength="80" placeholder="Midnight Drive" />
+          <label for="style">Style</label>
+          <input id="style" maxlength="1000" placeholder="synthwave, dreamy, 100 bpm, male vocals" />
+          <div class="chips" data-target="style">
+            <button type="button" class="chip">acoustic folk, warm</button>
+            <button type="button" class="chip">trap, hard 808s</button>
+            <button type="button" class="chip">jazz, smoky, piano</button>
+            <button type="button" class="chip">k-pop, bright, catchy</button>
+          </div>
+          <label for="lyrics">Lyrics <span class="count" data-count="lyrics">0 / 5000</span></label>
+          <textarea id="lyrics" maxlength="5000" rows="8" placeholder="[Verse]&#10;Headlights on an empty road&#10;&#10;[Chorus]&#10;We're alive, we're alive tonight"></textarea>
+        </div>
+
+        <!-- From my voice -->
+        <div class="panel" data-panel="voice" hidden>
+          <p class="hint">Record or upload a voice note — hum a melody, sing a line, or rap a verse. Up to about 2 minutes.</p>
+          <div class="voice-box" id="voiceBox">
+            <button type="button" class="rec" id="recBtn" aria-label="Record a voice note">
+              <span class="rec-dot"></span><span id="recLabel">Tap to record</span>
+            </button>
+            <span class="or">or</span>
+            <label class="file-btn">
+              <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.ogg,.opus,.webm,.aac,.flac" />
+              📁 Upload a file
+            </label>
+          </div>
+          <div class="voice-preview" id="voicePreview" hidden>
+            <audio id="voiceAudio" controls></audio>
+            <div class="voice-meta"><span id="voiceInfo"></span><button type="button" class="link" id="clearVoice">Remove</button></div>
+          </div>
+
+          <fieldset class="choice">
+            <legend>What should we do with it?</legend>
+            <label class="option">
+              <input type="radio" name="voiceMode" value="cover" checked />
+              <span><strong>Turn it into a song</strong><small>Keeps your melody, re-sings it as a fully produced track.</small></span>
+            </label>
+            <label class="option">
+              <input type="radio" name="voiceMode" value="accompany" />
+              <span><strong>Add music behind my voice</strong><small>Keeps your actual vocals and builds a backing track.</small></span>
+            </label>
+          </fieldset>
+
+          <label for="voiceStyle">Style</label>
+          <input id="voiceStyle" maxlength="1000" placeholder="soulful pop, piano and strings" />
+          <label for="voiceTitle">Title <span class="opt">(optional)</span></label>
+          <input id="voiceTitle" maxlength="80" placeholder="My Voice Note Song" />
+          <div data-only="cover">
+            <label for="voiceLyrics">Lyrics <span class="opt">(optional — leave blank to keep it wordless or let Suno decide)</span></label>
+            <textarea id="voiceLyrics" maxlength="5000" rows="4" placeholder="[Verse]&#10;…"></textarea>
+          </div>
+          <label for="audioWeight">Stick to my recording: <output id="audioWeightOut">65%</output></label>
+          <input type="range" id="audioWeight" min="0" max="100" value="65" />
+        </div>
+
+        <details class="advanced">
+          <summary>More options</summary>
+          <div class="grid">
+            <div>
+              <label for="model">Model</label>
+              <select id="model">
+                <option value="V6">V6 — best quality</option>
+                <option value="V6_WILD">V6 Wild — experimental</option>
+                <option value="V6_MINI">V6 Mini — fast &amp; light</option>
+              </select>
+            </div>
+            <div data-hide-for="accompany">
+              <label for="vocalGender">Voice</label>
+              <select id="vocalGender">
+                <option value="">Any</option>
+                <option value="f">Female</option>
+                <option value="m">Male</option>
+              </select>
+            </div>
+          </div>
+          <label class="check" data-hide-for="accompany"><input type="checkbox" id="instrumental" /> Instrumental (no vocals)</label>
+          <label for="negativeTags">Avoid <span class="opt">(styles to exclude)</span></label>
+          <input id="negativeTags" maxlength="1000" placeholder="heavy metal, autotune" />
+        </details>
+
+        <p class="error" id="formError" role="alert" hidden></p>
+        <button type="submit" class="go" id="goBtn"><span>Create my song</span></button>
+        <p class="fine">Each request makes two versions. Songs are kept by Suno for about 2 weeks — download the ones you love.</p>
+      </form>
+    </section>
+
+    <section class="results" id="results" aria-live="polite">
+      <div class="results-head" id="resultsHead" hidden>
+        <h2>Your songs</h2>
+        <button type="button" class="link" id="clearHistory">Clear history</button>
+      </div>
+      <div id="jobs"></div>
+    </section>
+  </main>
+
+  <footer class="foot">Powered by <a href="https://sunoapi.org" target="_blank" rel="noopener">sunoapi.org</a></footer>
+
+  <template id="jobTpl">
+    <article class="job card">
+      <header class="job-head">
+        <div>
+          <div class="job-title"></div>
+          <div class="job-sub"></div>
+        </div>
+        <span class="badge"></span>
+      </header>
+      <div class="progress"><div class="bar"></div></div>
+      <p class="job-error" hidden></p>
+      <div class="tracks"></div>
+    </article>
+  </template>
+
+  <template id="trackTpl">
+    <div class="track">
+      <div class="cover"><img alt="" loading="lazy" /></div>
+      <div class="track-body">
+        <div class="track-title"></div>
+        <div class="track-tags"></div>
+        <audio controls preload="none"></audio>
+        <div class="track-actions">
+          <a class="btn-sm dl" target="_blank" rel="noopener" download>⬇ Download</a>
+          <button type="button" class="btn-sm show-lyrics">Lyrics</button>
+        </div>
+        <pre class="track-lyrics" hidden></pre>
+      </div>
+    </div>
+  </template>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
