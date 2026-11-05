@@ -36,7 +36,7 @@ export function json(body, status = 200) {
 }
 
 function apiKey() {
-  return process.env.SUNO_API_KEY || '';
+  return (process.env.SUNO_API_KEY || '').trim();
 }
 
 /**
@@ -125,4 +125,19 @@ export function normaliseTrack(t = {}) {
     imageUrl: t.imageUrl || t.image_url || t.sourceImageUrl || t.source_image_url || '',
     model: t.modelName || t.model_name || '',
   };
+}
+
+/** Read the credit balance. The docs list /api/v1/generate/credit; the quickstart uses /api/v1/get-credits. */
+export async function getCredits() {
+  let data;
+  try {
+    data = await suno('/api/v1/generate/credit');
+  } catch (err) {
+    if (err.code !== 404) throw err;
+    data = await suno('/api/v1/get-credits');
+  }
+  const d = data.data;
+  const n = typeof d === 'number' ? d : Number(d && typeof d === 'object' ? d.credits ?? d.balance : d);
+  if (!Number.isFinite(n)) throw new SunoError('Suno returned an unexpected credits format.', 502);
+  return n;
 }

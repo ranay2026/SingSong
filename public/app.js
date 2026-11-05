@@ -36,7 +36,12 @@ async function api(path, options = {}) {
   try {
     data = await res.json();
   } catch {
-    data = { error: res.status === 413 ? 'That file is too large.' : `Server error (${res.status}).` };
+    data = {
+      error:
+        res.status === 413 ? 'That file is too large.'
+        : res.status === 404 ? 'API not found (404) — the Netlify Functions did not deploy. Check the Functions tab in Netlify.'
+        : `Server error (${res.status}).`,
+    };
   }
   if (res.status === 401 && data.code === 'password') {
     const entered = window.prompt('This SingSong is private. Enter the password:');
@@ -55,10 +60,24 @@ async function refreshCredits() {
     const { credits } = await api('/api/credits');
     el.textContent = `${credits.toLocaleString()} credits`;
     el.classList.toggle('low', credits < 20);
-  } catch {
-    el.textContent = '— credits';
+    el.title = 'Remaining sunoapi.org credits';
+    el.classList.remove('err');
+  } catch (err) {
+    // Show the real reason instead of hiding it.
+    el.textContent = '⚠ credits';
+    el.title = err.message + ' (click for details)';
+    el.classList.add('err');
+    console.warn('Credits check failed:', err.message);
   }
 }
+$('#credits').addEventListener('click', () => {
+  const el = $('#credits');
+  if (el.classList.contains('err')) {
+    showError(`Couldn't load credits: ${el.title.replace(' (click for details)', '')} — open /api/health for a full diagnosis.`);
+  } else {
+    refreshCredits();
+  }
+});
 
 // ---------- Tabs ----------
 let mode = 'simple';

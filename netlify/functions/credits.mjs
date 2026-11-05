@@ -1,12 +1,11 @@
 // GET /api/credits — remaining sunoapi.org credits for the account.
-import { guard, suno, json, handleError } from '../lib/suno.mjs';
+import { guard, json, handleError, getCredits } from '../lib/suno.mjs';
 
 export default async (req) => {
   const blocked = guard(req);
   if (blocked) return blocked;
   try {
-    const data = await suno('/api/v1/generate/credit');
-    return json({ credits: typeof data.data === 'number' ? data.data : Number(data.data) || 0 });
+    return json({ credits: await getCredits() });
   } catch (err) {
     return handleError(err);
   }
