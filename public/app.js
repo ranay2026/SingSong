@@ -309,7 +309,7 @@ $('#form').addEventListener('submit', async (e) => {
     setBusy(true, 'Sending to the studio…');
     const { label, ...payload } = input;
     const { taskId } = await api('/api/generate', { method: 'POST', body: JSON.stringify(payload) });
-    const job = { taskId, label, mode: input.mode, style: input.style || '', createdAt: Date.now(), status: 'PENDING', tracks: [] };
+    const job = { taskId, label, mode: input.mode, model: input.model, style: input.style || '', createdAt: Date.now(), status: 'PENDING', tracks: [] };
     jobs.unshift(job);
     saveJobs();
     renderJob(job, true);
@@ -329,7 +329,7 @@ function saveJobs() {
   $('#resultsHead').hidden = jobs.length === 0;
 }
 
-const MODE_LABEL = { simple: 'Described', custom: 'Written', inspire: 'From voice', cover: 'Voice melody', extend: 'Voice, continued', accompany: 'Voice + music' };
+const MODE_LABEL = { simple: 'Described', custom: 'Written', inspire: 'From voice', cover: 'Voice melody', extend: 'Voice, continued', accompany: 'Voice + music', edit: 'Edited' };
 const STATUS_LABEL = {
   PENDING: ['Queued', 10],
   TEXT_SUCCESS: ['Writing lyrics', 35],
@@ -373,6 +373,7 @@ function renderJob(job, prepend = false) {
         const pre = $('.track-lyrics', tEl);
         pre.hidden = !pre.hidden;
       });
+      $('.edit-take', tEl).addEventListener('click', () => openEditor(job, i, tEl));
       tracksEl.append(tEl);
     }
     const img = $('img', tEl);
@@ -393,8 +394,171 @@ function renderJob(job, prepend = false) {
     const lyrBtn = $('.show-lyrics', tEl);
     lyrBtn.hidden = !t.lyrics;
     $('.track-lyrics', tEl).textContent = t.lyrics || '';
+    // Editing needs a finished take with its Suno audio id.
+    $('.edit-take', tEl).hidden = !(job.status === 'SUCCESS' && t.id && t.audioUrl);
   });
   $('#resultsHead').hidden = jobs.length === 0;
+}
+
+// ---------- Edit a take (pace / feel / re-record / longer) ----------
+const PACE = {
+  slower: { label: 'slower', style: 'slower tempo, relaxed pace', factor: 1.15 },
+  faster: { label: 'faster', style: 'faster tempo, more driving', factor: 0.88 },
+  muchfaster: { label: 'much faster', style: 'much faster tempo, high energy, uptempo', factor: 0.8 },
+  halftime: { label: 'half-time', style: 'half-time feel, laid-back groove', factor: 1.1 },
+};
+
+// Drop old tempo descriptors so they don't fight the new pace.
+function stripTempo(style) {
+  return style
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s && !/\b\d+\s*bpm\b|tempo|half-?time|double-?time/i.test(s))
+    .join(', ');
+}
+
+function openEditor(job, i, tEl) {
+  let panel = $('.edit', tEl);
+  if (panel) {
+    panel.hidden = !panel.hidden;
+    return;
+  }
+  panel = $('#editTpl').content.firstElementChild.cloneNode(true);
+  const group = 'edit-' + Math.random().toString(36).slice(2, 8);
+  $$('input[type="radio"]', panel).forEach((r) => (r.name = group));
+  tEl.append(panel); // full-width row under the take (.track wraps)
+
+  const take = () => job.tracks[i] || {};
+  $('.edit-lyrics', panel).value = take().lyrics || '';
+  let pace = 'faster';
+
+  const kind = () => $('input[type="radio"]:checked', panel).value;
+  const sync = () => {
+    const k = kind();
+    $$('[data-kind]', panel).forEach((el) => (el.hidden = el.dataset.kind !== k));
+    $('.edit-lyrics-wrap', panel).hidden = k === 'longer';
+    if (k === 'rerecord') $('.edit-lyrics-wrap', panel).open = true;
+  };
+  $$('input[type="radio"]', panel).forEach((r) => r.addEventListener('change', sync));
+  sync();
+
+  $('.pace-chips', panel).addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    pace = chip.dataset.pace;
+    $$('.pace-chips .chip', panel).forEach((c) => c.classList.toggle('on', c === chip));
+  });
+  $('.vibe-chips', panel).addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const input = $('.edit-vibe', panel);
+    const cur = input.value.trim();
+    input.value = cur ? `${cur}, ${chip.textContent.toLowerCase()}` : chip.textContent.toLowerCase();
+    if ('genre' in chip.dataset) $('.edit-keep', panel).checked = false; // genre swap replaces the old style
+  });
+  $('.edit-close', panel).addEventListener('click', () => (panel.hidden = true));
+
+  panel.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const err = $('.edit-error', panel);
+    err.hidden = true;
+    let req;
+    try {
+      req = buildEdit(job, i, panel, kind(), pace);
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.hidden = false;
+      return;
+    }
+    const btn = $('.edit-go', panel);
+    btn.disabled = true;
+    $('span', btn).textContent = 'Sending to the studio…';
+    try {
+      const { taskId } = await api('/api/generate', { method: 'POST', body: JSON.stringify(req.payload) });
+      const t = take();
+      const child = {
+        taskId,
+        label: req.label,
+        mode: 'edit',
+        model: req.payload.model,
+        style: req.payload.style || t.tags || '',
+        parent: { taskId: job.taskId, audioId: t.id, take: i + 1 },
+        createdAt: Date.now(),
+        status: 'PENDING',
+        tracks: [],
+      };
+      jobs.unshift(child);
+      saveJobs();
+      renderJob(child, true);
+      panel.hidden = true;
+      const el = jobEl(taskId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('highlight');
+        setTimeout(() => el.classList.remove('highlight'), 2500);
+      }
+      poll(child);
+      refreshCredits();
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.hidden = false;
+    } finally {
+      btn.disabled = false;
+      $('span', btn).textContent = 'Make the change';
+    }
+  });
+}
+
+function buildEdit(job, i, panel, k, pace) {
+  const t = job.tracks[i] || {};
+  if (!t.id) throw new Error('This take is not ready to edit yet.');
+  const base = t.tags || job.style || '';
+  const name = `${t.title || job.label}${job.tracks.length > 1 ? ` (take ${i + 1})` : ''}`;
+  const common = { model: job.model || 'V6', taskId: job.taskId, audioId: t.id, title: t.title || '' };
+  const dur = Number(t.duration) || 0;
+
+  if (k === 'longer') {
+    const newLyrics = $('.edit-newlyrics', panel).value.trim();
+    const from = $('.edit-from', panel).value;
+    let continueAt;
+    if (dur > 2) continueAt = from === 'rewrite' && dur > 40 ? dur - 30 : dur - 1;
+    return {
+      label: `${name} → longer`,
+      payload: { ...common, mode: 'extendTrack', style: base, lyrics: newLyrics, instrumental: !t.lyrics && !newLyrics, continueAt },
+    };
+  }
+
+  const lyrics = $('.edit-lyrics', panel).value.trim();
+  const instrumental = !lyrics; // a take without lyrics stays instrumental
+  let style = base;
+  let what = 're-recorded';
+  let duration = dur;
+
+  if (k === 'pace') {
+    const p = PACE[pace];
+    const bpm = Math.round(Number($('.edit-bpm', panel).value));
+    const hasBpm = Number.isFinite(bpm) && bpm >= 50 && bpm <= 220;
+    style = [p.style, hasBpm ? `${bpm} bpm` : '', stripTempo(base)].filter(Boolean).join(', ');
+    what = hasBpm ? `${p.label}, ${bpm} bpm` : p.label;
+    duration = dur * p.factor;
+  } else if (k === 'feel') {
+    const vibe = $('.edit-vibe', panel).value.trim();
+    if (!vibe) throw new Error('Describe the new feel, or tap one of the suggestions.');
+    style = $('.edit-keep', panel).checked && base ? `${vibe}, ${base}` : vibe;
+    what = vibe.length > 40 ? vibe.slice(0, 40) + '…' : vibe;
+  }
+
+  return {
+    label: `${name} → ${what}`,
+    payload: {
+      ...common,
+      mode: 'remix',
+      style: style.slice(0, 1000),
+      lyrics: instrumental ? '' : lyrics,
+      instrumental,
+      duration: duration ? Math.min(360, Math.max(10, Math.round(duration))) : undefined,
+    },
+  };
 }
 
 async function poll(job) {

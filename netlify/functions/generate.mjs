@@ -6,6 +6,8 @@
 //   cover      → /api/v1/generate/upload-cover, re-records the voice note keeping its melody (optional duration)
 //   extend     → /api/v1/generate/upload-extend, continues the song from the end of the voice note
 //   accompany  → /api/v1/generate/add-instrumental, keeps your voice and adds backing music
+//   remix      → /api/v1/generate/upload-cover with taskId+audioId, re-records a chosen take (pace / feel / re-record)
+//   extendTrack→ /api/v1/generate/extend, makes a chosen take longer
 import { guard, suno, json, handleError, callbackUrl } from '../lib/suno.mjs';
 import { buildRequest } from '../lib/tasks.mjs';
 

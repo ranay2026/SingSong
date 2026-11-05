@@ -11,6 +11,7 @@ function isHttpUrl(value) {
 }
 
 export const VOICE_MODES = ['inspire', 'cover', 'extend', 'accompany'];
+const ID_RE = /^[\w-]{1,128}$/;
 
 function joinStyle(style, notes) {
   return [style, notes].filter(Boolean).join('. ').slice(0, 1000);
@@ -54,6 +55,42 @@ export function buildRequest(input, cbUrl) {
     if (negativeTags) body.negativeTags = negativeTags;
     if (vocalGender && !instrumental) body.vocalGender = vocalGender;
     return { path: '/api/v1/generate', body };
+  }
+
+  if (mode === 'remix' || mode === 'extendTrack') {
+    // Edit a specific take of an earlier result (identified by taskId + audioId).
+    const taskId = clean(input.taskId, 128);
+    const audioId = clean(input.audioId, 128);
+    if (!ID_RE.test(audioId) || (taskId && !ID_RE.test(taskId))) throw new Error('Pick a finished take to edit.');
+
+    if (mode === 'remix') {
+      // Pace / feel / re-record: re-record the take via upload-cover with taskId + audioId.
+      if (!taskId) throw new Error('Pick a finished take to edit.');
+      if (!instrumental && !lyrics) {
+        throw new Error('Add the lyrics to re-sing in the Lyrics box (or clear them to make it instrumental).');
+      }
+      const body = { taskId, audioId, model, instrumental, callBackUrl: cbUrl };
+      if (title) body.title = title;
+      if (style) body.style = style;
+      if (!instrumental) body.lyrics = lyrics;
+      if (negativeTags) body.negativeTags = negativeTags;
+      if (vocalGender && !instrumental) body.vocalGender = vocalGender;
+      const duration = Math.round(Number(input.duration));
+      if (Number.isFinite(duration) && duration >= 10) body.duration = Math.min(360, duration);
+      return { path: '/api/v1/generate/upload-cover', body };
+    }
+
+    // Make it longer: /api/v1/generate/extend continues the take from continueAt.
+    const body = { audioId, model, instrumental, callBackUrl: cbUrl };
+    if (taskId) body.taskId = taskId;
+    const extTitle = clean(input.title, 100);
+    if (extTitle) body.title = extTitle;
+    if (style) body.style = style;
+    if (lyrics && !instrumental) body.lyrics = lyrics;
+    if (vocalGender && !instrumental) body.vocalGender = vocalGender;
+    const at = Number(input.continueAt);
+    if (Number.isFinite(at) && at > 0) body.continueAt = Math.round(at * 10) / 10;
+    return { path: '/api/v1/generate/extend', body };
   }
 
   if (VOICE_MODES.includes(mode)) {

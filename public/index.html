@@ -246,10 +246,82 @@
         <div class="track-actions">
           <a class="btn-sm dl" target="_blank" rel="noopener" download><i class="ph-duotone ph-download-simple" aria-hidden="true"></i>Download</a>
           <button type="button" class="btn-sm show-lyrics"><i class="ph-duotone ph-text-align-left" aria-hidden="true"></i>Lyrics</button>
+          <button type="button" class="btn-sm edit-take" hidden><i class="ph-duotone ph-sliders-horizontal" aria-hidden="true"></i>Edit this take</button>
         </div>
         <pre class="track-lyrics" hidden></pre>
       </div>
     </div>
+  </template>
+
+  <template id="editTpl">
+    <form class="edit" novalidate>
+      <div class="edit-head">
+        <strong>Edit this take</strong>
+        <button type="button" class="btn-sm edit-close"><i class="ph-duotone ph-x" aria-hidden="true"></i>Close</button>
+      </div>
+      <div class="edit-kinds" role="radiogroup" aria-label="What do you want to change?">
+        <label class="seg"><input type="radio" value="pace" checked /><span><i class="ph-duotone ph-metronome" aria-hidden="true"></i>Pace</span></label>
+        <label class="seg"><input type="radio" value="feel" /><span><i class="ph-duotone ph-palette" aria-hidden="true"></i>Change the feel</span></label>
+        <label class="seg"><input type="radio" value="rerecord" /><span><i class="ph-duotone ph-arrows-clockwise" aria-hidden="true"></i>Re-record</span></label>
+        <label class="seg"><input type="radio" value="longer" /><span><i class="ph-duotone ph-arrows-out-line-horizontal" aria-hidden="true"></i>Make it longer</span></label>
+      </div>
+
+      <div class="edit-section" data-kind="pace">
+        <div class="chips pace-chips">
+          <button type="button" class="chip" data-pace="slower">Slower</button>
+          <button type="button" class="chip on" data-pace="faster">Faster</button>
+          <button type="button" class="chip" data-pace="muchfaster">Much faster</button>
+          <button type="button" class="chip" data-pace="halftime">Half-time feel</button>
+        </div>
+        <div class="field">
+          <label>Target tempo <span class="opt">(optional, in BPM)</span></label>
+          <input type="number" class="edit-bpm" min="50" max="220" inputmode="numeric" placeholder="e.g. 128" />
+        </div>
+      </div>
+
+      <div class="edit-section" data-kind="feel" hidden>
+        <div class="field">
+          <label>Describe the new feel</label>
+          <input class="edit-vibe" maxlength="600" placeholder="stripped-back acoustic, warm and intimate" />
+        </div>
+        <div class="chips vibe-chips">
+          <button type="button" class="chip" data-genre>Acoustic</button>
+          <button type="button" class="chip" data-genre>Lo-fi</button>
+          <button type="button" class="chip" data-genre>Rock</button>
+          <button type="button" class="chip" data-genre>Orchestral</button>
+          <button type="button" class="chip">More energy</button>
+          <button type="button" class="chip">Darker</button>
+          <button type="button" class="chip">Female singer</button>
+          <button type="button" class="chip">Male singer</button>
+        </div>
+        <label class="check"><input type="checkbox" class="edit-keep" checked /> Keep the original style as a base</label>
+      </div>
+
+      <p class="fine edit-section" data-kind="rerecord" hidden>Same style, brand-new performance. Change any words in the lyrics below and they'll be sung that way.</p>
+
+      <div class="edit-section" data-kind="longer" hidden>
+        <div class="field">
+          <label>Continue from</label>
+          <select class="edit-from">
+            <option value="end">The end of the song (add more)</option>
+            <option value="rewrite">30 seconds before the end (rewrite the ending)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Lyrics for the new part <span class="opt">(add some if you want singing)</span></label>
+          <textarea class="edit-newlyrics" maxlength="5000" rows="4" placeholder="[Bridge]&#10;…&#10;&#10;[Final Chorus]&#10;…"></textarea>
+        </div>
+      </div>
+
+      <details class="edit-lyrics-wrap">
+        <summary>Lyrics <span class="opt">(from this take — edit to change words, clear for instrumental)</span></summary>
+        <textarea class="edit-lyrics" maxlength="5000" rows="6"></textarea>
+      </details>
+
+      <p class="error edit-error" role="alert" hidden></p>
+      <button type="submit" class="go edit-go"><i class="ph-duotone ph-magic-wand" aria-hidden="true"></i><span>Make the change</span></button>
+      <p class="fine">Uses credits like a new song and gives you two new takes.</p>
+    </form>
   </template>
 
   <script type="module" src="app.js"></script>

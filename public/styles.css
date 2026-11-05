@@ -101,7 +101,7 @@ i[class*="ph-"] { line-height: 1; }
 .field > label .opt { font-size: 14px; }
 .split { display: flex; justify-content: space-between; }
 .split output { font-weight: 400; color: var(--accent-700); font-variant-numeric: tabular-nums; }
-input:not([type]), input[type=text], textarea, select {
+input:not([type]), input[type=text], input[type=number], textarea, select {
   width: 100%; min-height: 44px; padding: 10px 14px; font-size: 16px;
   background: var(--surface); border: 1px solid var(--line); border-radius: 2px;
   caret-color: var(--accent);
@@ -255,3 +255,32 @@ input[type=range] { width: 100%; accent-color: var(--accent); margin: 4px 0 0; }
 .track-lyrics { margin: 0; font-family: var(--serif); font-size: 14px; line-height: 1.6; white-space: pre-wrap; color: #2d2b2b; }
 
 .foot { max-width: 1200px; margin: 0 auto; padding: 30px 20px 40px; font-size: 14px; color: var(--muted); }
+
+/* — edit a take — */
+.edit {
+  display: flex; flex-direction: column; gap: 14px; margin-top: 8px; padding: 14px;
+  background: var(--bg); border: 1px solid var(--line-soft); border-radius: var(--radius);
+}
+.edit-head { display: flex; align-items: center; justify-content: space-between; }
+.edit-head strong { font-size: 16px; }
+.edit-kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.seg { cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span {
+  display: flex; align-items: center; justify-content: center; gap: 6px; height: 100%;
+  padding: 8px 10px; font-size: 14px; font-weight: 600; text-align: center;
+  border: 1px solid var(--line); border-radius: 2px; background: var(--surface);
+}
+.seg span i { font-size: 17px; color: var(--accent-700); }
+.seg:hover span { border-color: var(--accent); }
+.seg input:checked + span { background: var(--accent-100); border-color: var(--accent); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.edit-section { display: flex; flex-direction: column; gap: 12px; }
+.chip.on { background: var(--accent-100); border-color: var(--accent); color: var(--accent-800); }
+.edit-lyrics-wrap summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+.edit-lyrics-wrap summary .opt { font-weight: 400; color: var(--muted); }
+.edit-lyrics-wrap textarea { margin-top: 8px; }
+.edit .go { padding: 12px 16px; font-size: 16px; }
+.job.highlight { box-shadow: 0 0 0 2px var(--accent); transition: box-shadow .4s; }
+.track { flex-wrap: wrap; }
+.track > .edit { flex: 1 0 100%; margin-top: 0; }

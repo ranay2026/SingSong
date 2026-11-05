@@ -10,7 +10,13 @@ A small web app that makes AI songs with the [sunoapi.org](https://sunoapi.org) 
   - **Continue it**: keeps your recording and writes what comes next (`/api/v1/generate/upload-extend`)
   - **Music behind my voice**: keeps your real vocals and adds a backing track (`/api/v1/generate/add-instrumental`)
 
-Each request returns two takes. You can play them, read the lyrics and download them. Your song history is saved in your browser.
+Each request returns two takes. You can play them, read the lyrics and download them.
+
+**Edit a take:** every finished take has an **Edit this take** button, so you can pick the better of the two and refine it. The result comes back as two new takes, and you can keep editing:
+- **Pace**: slower, faster, much faster or half-time, with an optional target BPM (re-records the take via `upload-cover` with `taskId` + `audioId`)
+- **Change the feel**: a new genre, mood or singer, keeping the original style as a base or replacing it
+- **Re-record**: same style, a fresh performance; edit the lyrics to change words
+- **Make it longer**: continue from the end, or rewrite the last 30 seconds, with optional lyrics for the new part (`/api/v1/generate/extend`) Your song history is saved in your browser.
 
 ## Tech stack
 
