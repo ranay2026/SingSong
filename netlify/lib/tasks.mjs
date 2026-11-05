@@ -78,6 +78,11 @@ export function buildRequest(input, cbUrl) {
 
     if (mode === 'cover') {
       // Re-records the voice note keeping its melody. `duration` lets it run longer than the clip.
+      // Suno only sings what is in `lyrics` (it does not transcribe the upload), so
+      // without lyrics the result is an instrumental.
+      if (!instrumental && !lyrics) {
+        throw new Error('Keep my melody needs lyrics to sing. Type the words from your recording, or turn on Instrumental.');
+      }
       const body = { uploadUrl, model, instrumental, callBackUrl: cbUrl };
       if (title) body.title = title;
       if (styleWithNotes) body.style = styleWithNotes;

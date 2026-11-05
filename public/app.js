@@ -100,7 +100,7 @@ function voiceMode() {
 }
 const LYRICS_HINT = {
   inspire: '(optional — paste what you have and Suno will expand on it)',
-  cover: '(optional — sung as written over your melody)',
+  cover: '(needed for vocals — type the words you sang; Suno can’t pick them up from the recording)',
   extend: '(optional — lyrics for the part that comes next, e.g. a [Bridge])',
 };
 function syncVoiceMode() {
@@ -264,6 +264,11 @@ function collect() {
   const vm = voiceMode();
   const description = $('#voiceDesc').value.trim();
   const title = $('#voiceTitle').value.trim();
+  const coverLyrics = $('#voiceLyrics').value.trim();
+  if (vm === 'cover' && !common.instrumental && !coverLyrics) {
+    $('#voiceLyrics').focus();
+    throw new Error('Keep my melody needs the words to sing. Type the lyrics from your recording (Suno can’t pick them up from the audio), turn on Instrumental, or choose “Music behind my voice” to keep your own vocals.');
+  }
   const VOICE_LABEL = { inspire: 'Full song from voice note', cover: 'Voice note melody', extend: 'Voice note, continued', accompany: 'Voice note + backing track' };
   return {
     ...common,
