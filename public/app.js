@@ -58,13 +58,13 @@ async function refreshCredits() {
   const el = $('#credits');
   try {
     const { credits } = await api('/api/credits');
-    el.textContent = `${credits.toLocaleString()} credits`;
+    el.querySelector('span').textContent = `${credits.toLocaleString()} credits`;
     el.classList.toggle('low', credits < 20);
     el.title = 'Remaining sunoapi.org credits';
     el.classList.remove('err');
   } catch (err) {
     // Show the real reason instead of hiding it.
-    el.textContent = '⚠ credits';
+    el.querySelector('span').textContent = 'Credits unavailable';
     el.title = err.message + ' (click for details)';
     el.classList.add('err');
     console.warn('Credits check failed:', err.message);
@@ -89,6 +89,7 @@ function setMode(next) {
     t.setAttribute('aria-selected', on);
   });
   $$('.panel').forEach((p) => (p.hidden = p.dataset.panel !== next));
+  $$('[data-hide-in-mode]').forEach((el) => (el.hidden = el.dataset.hideInMode === next));
   syncVoiceMode();
   hideError();
 }
@@ -110,6 +111,12 @@ function syncVoiceMode() {
   if (vm && LYRICS_HINT[vm]) $('#voiceLyricsHint').textContent = LYRICS_HINT[vm];
 }
 $$('input[name="voiceMode"]').forEach((r) => r.addEventListener('change', syncVoiceMode));
+
+// One instrumental setting, two switches (Write tab + More options).
+const instrMain = $('#instrumental');
+const instrWrite = $('#instrumentalWrite');
+instrWrite.addEventListener('change', () => (instrMain.checked = instrWrite.checked));
+instrMain.addEventListener('change', () => (instrWrite.checked = instrMain.checked));
 
 // Suggestion chips fill their target field.
 $$('.chips').forEach((group) => {
@@ -250,7 +257,7 @@ function collect() {
     const style = $('#style').value.trim();
     const lyrics = $('#lyrics').value.trim();
     if (!style && !lyrics) throw new Error('Add a style or some lyrics.');
-    if (!lyrics && !common.instrumental) throw new Error('Add lyrics, or turn on "Instrumental" under More options.');
+    if (!lyrics && !common.instrumental) throw new Error('Add lyrics, or tick "Instrumental" below the lyrics.');
     return { ...common, mode: 'custom', title: $('#title').value, style, lyrics, label: $('#title').value.trim() || style || 'My song' };
   }
   if (!voice) throw new Error('Record or upload a voice note first.');

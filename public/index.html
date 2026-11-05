@@ -5,173 +5,218 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>SingSong — make a song in seconds</title>
   <meta name="description" content="Describe a song, write your own lyrics, or hum a voice note — SingSong turns it into music." />
-  <meta name="theme-color" content="#0f0d1a" />
+  <meta name="theme-color" content="#f3f2f2" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B5%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="logo" aria-hidden="true">♪</span> SingSong</div>
-    <div class="credits" id="credits" title="Remaining sunoapi.org credits">… credits</div>
+    <div class="brand"><i class="ph-duotone ph-music-notes" aria-hidden="true"></i> SingSong</div>
+    <button type="button" class="credits" id="credits" title="Remaining sunoapi.org credits"><i class="ph-duotone ph-coins" aria-hidden="true"></i><span>… credits</span></button>
   </header>
 
   <main class="wrap">
     <section class="hero">
       <h1>Make a song in seconds.</h1>
-      <p>Describe it, write it, or sing it into your phone — we'll do the rest.</p>
+      <p>Describe it, write it, or sing it into your phone. <em>We'll do the rest.</em></p>
     </section>
 
-    <section class="card composer">
-      <div class="tabs" role="tablist">
-        <button class="tab active" role="tab" data-mode="simple" aria-selected="true">✨ Describe it</button>
-        <button class="tab" role="tab" data-mode="custom" aria-selected="false">✍️ Write it</button>
-        <button class="tab" role="tab" data-mode="voice" aria-selected="false">🎤 From my voice</button>
-      </div>
-
-      <form id="form" novalidate>
-        <!-- Describe it -->
-        <div class="panel" data-panel="simple">
-          <label for="prompt">What should the song be about?</label>
-          <textarea id="prompt" maxlength="3000" rows="4" placeholder="An upbeat birthday song for my sister Maya who loves surfing and tacos"></textarea>
-          <div class="chips" data-target="prompt">
-            <button type="button" class="chip">Lo-fi study beat about rainy Sundays</button>
-            <button type="button" class="chip">Epic movie trailer about my cat</button>
-            <button type="button" class="chip">90s R&amp;B love song for my partner</button>
-          </div>
-          <label for="simpleStyle">Style <span class="opt">(optional)</span></label>
-          <input id="simpleStyle" maxlength="1000" placeholder="pop punk, energetic, female vocals" />
-        </div>
-
-        <!-- Write it -->
-        <div class="panel" data-panel="custom" hidden>
-          <label for="title">Title <span class="opt">(optional)</span></label>
-          <input id="title" maxlength="80" placeholder="Midnight Drive" />
-          <label for="style">Style</label>
-          <input id="style" maxlength="1000" placeholder="synthwave, dreamy, 100 bpm, male vocals" />
-          <div class="chips" data-target="style">
-            <button type="button" class="chip">acoustic folk, warm</button>
-            <button type="button" class="chip">trap, hard 808s</button>
-            <button type="button" class="chip">jazz, smoky, piano</button>
-            <button type="button" class="chip">k-pop, bright, catchy</button>
-          </div>
-          <label for="lyrics">Lyrics <span class="count" data-count="lyrics">0 / 5000</span></label>
-          <textarea id="lyrics" maxlength="5000" rows="8" placeholder="[Verse]&#10;Headlights on an empty road&#10;&#10;[Chorus]&#10;We're alive, we're alive tonight"></textarea>
-        </div>
-
-        <!-- From my voice -->
-        <div class="panel" data-panel="voice" hidden>
-          <p class="hint">Record or upload a voice note — hum a melody, sing a line, or rap a verse. Up to about 2 minutes.</p>
-          <div class="voice-box" id="voiceBox">
-            <button type="button" class="rec" id="recBtn" aria-label="Record a voice note">
-              <span class="rec-dot"></span><span id="recLabel">Tap to record</span>
-            </button>
-            <span class="or">or</span>
-            <label class="file-btn">
-              <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.ogg,.opus,.webm,.aac,.flac" />
-              📁 Upload a file
-            </label>
-          </div>
-          <div class="voice-preview" id="voicePreview" hidden>
-            <audio id="voiceAudio" controls></audio>
-            <div class="voice-meta"><span id="voiceInfo"></span><button type="button" class="link" id="clearVoice">Remove</button></div>
-          </div>
-
-          <label for="voiceDesc">Describe what you want</label>
-          <textarea id="voiceDesc" maxlength="3000" rows="3" placeholder="Use my hum as the chorus melody. Make it an upbeat indie-pop song about leaving home, with a big final chorus."></textarea>
-          <div class="chips" data-target="voiceDesc" data-append>
-            <button type="button" class="chip">Use my recording as the chorus</button>
-            <button type="button" class="chip">Expand my lyrics into full verses and a chorus</button>
-            <button type="button" class="chip">Build a bridge that lifts into a big final chorus</button>
-            <button type="button" class="chip">Keep my melody but make it a full band arrangement</button>
-          </div>
-
-          <fieldset class="choice">
-            <legend>What should we do with it?</legend>
-            <label class="option">
-              <input type="radio" name="voiceMode" value="inspire" checked />
-              <span><strong>Full song from my idea</strong><small>A complete, full-length song built from your recording and description.</small></span>
-            </label>
-            <label class="option">
-              <input type="radio" name="voiceMode" value="cover" />
-              <span><strong>Keep my melody</strong><small>Re-sings your exact tune as a produced track. Choose a length below.</small></span>
-            </label>
-            <label class="option">
-              <input type="radio" name="voiceMode" value="extend" />
-              <span><strong>Continue it</strong><small>Keeps your recording and writes what comes next — the next verse, a bridge, the chorus.</small></span>
-            </label>
-            <label class="option">
-              <input type="radio" name="voiceMode" value="accompany" />
-              <span><strong>Music behind my voice</strong><small>Keeps your actual vocals and builds a backing track.</small></span>
-            </label>
-          </fieldset>
-
-          <label for="voiceStyle">Style <span class="opt">(optional)</span></label>
-          <input id="voiceStyle" maxlength="1000" placeholder="soulful pop, piano and strings" />
-          <div data-hide-for-voice="inspire">
-            <label for="voiceTitle">Title <span class="opt">(optional)</span></label>
-            <input id="voiceTitle" maxlength="80" placeholder="My Voice Note Song" />
-          </div>
-          <div data-hide-for-voice="accompany">
-            <label for="voiceLyrics">Lyrics <span class="opt" id="voiceLyricsHint">(optional — paste what you have and Suno will build on it)</span></label>
-            <textarea id="voiceLyrics" maxlength="5000" rows="5" placeholder="[Verse]&#10;Packed my bags at half past two&#10;&#10;[Chorus]&#10;…"></textarea>
-          </div>
-          <div data-only-voice="cover">
-            <label for="voiceLength">Song length</label>
-            <select id="voiceLength">
-              <option value="180">Full song (~3 min)</option>
-              <option value="240">Long (~4 min)</option>
-              <option value="120">Medium (~2 min)</option>
-              <option value="60">Short (~1 min)</option>
-              <option value="">Same as my recording</option>
-            </select>
-          </div>
-          <div data-hide-for-voice="inspire">
-            <label for="audioWeight">Stick to my recording: <output id="audioWeightOut">65%</output></label>
-            <input type="range" id="audioWeight" min="0" max="100" value="65" />
-          </div>
-        </div>
-
-        <details class="advanced">
-          <summary>More options</summary>
-          <div class="grid">
-            <div>
-              <label for="model">Model</label>
-              <select id="model">
-                <option value="V6">V6 — best quality</option>
-                <option value="V6_WILD">V6 Wild — experimental</option>
-                <option value="V6_MINI">V6 Mini — fast &amp; light</option>
-              </select>
+    <div class="layout">
+      <section class="composer">
+        <form id="form" novalidate>
+          <section class="step">
+            <h2 class="step-title"><span class="num">01</span>How do you want to start?</h2>
+            <div class="tabs" role="tablist">
+              <button type="button" class="tab active" role="tab" data-mode="simple" aria-selected="true">
+                <i class="ph-duotone ph-sparkle" aria-hidden="true"></i><strong>Describe it</strong><small>Type an idea. We write the words and music.</small>
+              </button>
+              <button type="button" class="tab" role="tab" data-mode="custom" aria-selected="false">
+                <i class="ph-duotone ph-pen-nib" aria-hidden="true"></i><strong>Write it</strong><small>Bring your own lyrics and style.</small>
+              </button>
+              <button type="button" class="tab" role="tab" data-mode="voice" aria-selected="false">
+                <i class="ph-duotone ph-microphone" aria-hidden="true"></i><strong>Sing or hum</strong><small>Start from a voice note or a recording.</small>
+              </button>
             </div>
-            <div data-hide-for="accompany">
-              <label for="vocalGender">Voice</label>
-              <select id="vocalGender">
-                <option value="">Any</option>
-                <option value="f">Female</option>
-                <option value="m">Male</option>
-              </select>
-            </div>
+          </section>
+
+          <!-- Describe it -->
+          <div class="panel" data-panel="simple">
+            <section class="step">
+              <h2 class="step-title"><span class="num">02</span><label for="prompt">What should the song be about?</label></h2>
+              <textarea id="prompt" maxlength="3000" rows="4" placeholder="An upbeat birthday song for my sister Maya who loves surfing and tacos"></textarea>
+              <div class="chips" data-target="prompt">
+                <button type="button" class="chip">Lo-fi study beat about rainy Sundays</button>
+                <button type="button" class="chip">Epic movie trailer about my cat</button>
+                <button type="button" class="chip">90s R&amp;B love song for my partner</button>
+              </div>
+            </section>
+            <section class="step">
+              <h2 class="step-title"><span class="num">03</span><label for="simpleStyle">Sound <span class="opt">optional</span></label></h2>
+              <input id="simpleStyle" maxlength="1000" placeholder="pop punk, energetic, female vocals" />
+            </section>
           </div>
-          <label class="check" data-hide-for="accompany"><input type="checkbox" id="instrumental" /> Instrumental (no vocals)</label>
-          <label for="negativeTags">Avoid <span class="opt">(styles to exclude)</span></label>
-          <input id="negativeTags" maxlength="1000" placeholder="heavy metal, autotune" />
-        </details>
 
-        <p class="error" id="formError" role="alert" hidden></p>
-        <button type="submit" class="go" id="goBtn"><span>Create my song</span></button>
-        <p class="fine">Each request makes two versions. Songs are kept by Suno for about 2 weeks — download the ones you love.</p>
-      </form>
-    </section>
+          <!-- Write it -->
+          <div class="panel" data-panel="custom" hidden>
+            <section class="step">
+              <h2 class="step-title"><span class="num">02</span>Title and style</h2>
+              <div class="field">
+                <label for="title">Title <span class="opt">optional</span></label>
+                <input id="title" maxlength="80" placeholder="Midnight Drive" />
+              </div>
+              <div class="field">
+                <label for="style">Style</label>
+                <input id="style" maxlength="1000" placeholder="synthwave, dreamy, 100 bpm, male vocals" />
+              </div>
+              <div class="chips" data-target="style">
+                <button type="button" class="chip">acoustic folk, warm</button>
+                <button type="button" class="chip">trap, hard 808s</button>
+                <button type="button" class="chip">jazz, smoky, piano</button>
+                <button type="button" class="chip">k-pop, bright, catchy</button>
+              </div>
+            </section>
+            <section class="step">
+              <h2 class="step-title"><span class="num">03</span><label for="lyrics">Lyrics</label><span class="count" data-count="lyrics">0 / 5000</span></h2>
+              <textarea id="lyrics" maxlength="5000" rows="8" placeholder="[Verse]&#10;Headlights on an empty road&#10;&#10;[Chorus]&#10;We're alive, we're alive tonight"></textarea>
+              <label class="check"><input type="checkbox" id="instrumentalWrite" /> Instrumental — no vocals, lyrics not needed</label>
+            </section>
+          </div>
 
-    <section class="results" id="results" aria-live="polite">
-      <div class="results-head" id="resultsHead" hidden>
-        <h2>Your songs</h2>
-        <button type="button" class="link" id="clearHistory">Clear history</button>
-      </div>
-      <div id="jobs"></div>
-    </section>
+          <!-- From my voice -->
+          <div class="panel" data-panel="voice" hidden>
+            <section class="step">
+              <h2 class="step-title"><span class="num">02</span>Your recording</h2>
+              <div class="voice-box" id="voiceBox">
+                <button type="button" class="rec" id="recBtn" aria-label="Record a voice note">
+                  <span class="rec-dot" aria-hidden="true"><i class="ph-duotone ph-microphone i-mic"></i><i class="ph-duotone ph-stop i-stop"></i></span>
+                  <span class="rec-text"><span id="recLabel">Tap to record</span><small>Hum a melody, sing a line or rap a verse. Up to about 2 minutes.</small></span>
+                </button>
+                <label class="file-btn">
+                  <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.ogg,.opus,.webm,.aac,.flac" />
+                  <i class="ph-duotone ph-upload-simple" aria-hidden="true"></i> Or upload a file
+                </label>
+              </div>
+              <div class="voice-preview" id="voicePreview" hidden>
+                <audio id="voiceAudio" controls></audio>
+                <div class="voice-meta"><i class="ph-duotone ph-waveform" aria-hidden="true"></i><span id="voiceInfo"></span><button type="button" class="link" id="clearVoice">Remove</button></div>
+              </div>
+            </section>
+
+            <section class="step">
+              <fieldset class="choice">
+                <legend class="step-title"><span class="num">03</span>What should we do with it?</legend>
+                <label class="option">
+                  <input type="radio" name="voiceMode" value="inspire" checked />
+                  <span><strong><i class="ph-duotone ph-music-notes-plus" aria-hidden="true"></i>Full song from my idea</strong><small>A complete, full-length song built from your recording and description.</small></span>
+                </label>
+                <label class="option">
+                  <input type="radio" name="voiceMode" value="cover" />
+                  <span><strong><i class="ph-duotone ph-microphone-stage" aria-hidden="true"></i>Keep my melody</strong><small>Re-sings your exact tune as a produced track. You pick the length.</small></span>
+                </label>
+                <label class="option">
+                  <input type="radio" name="voiceMode" value="extend" />
+                  <span><strong><i class="ph-duotone ph-arrow-bend-down-right" aria-hidden="true"></i>Continue it</strong><small>Keeps your recording and writes what comes next: a verse, a bridge, the chorus.</small></span>
+                </label>
+                <label class="option">
+                  <input type="radio" name="voiceMode" value="accompany" />
+                  <span><strong><i class="ph-duotone ph-piano-keys" aria-hidden="true"></i>Music behind my voice</strong><small>Keeps your actual vocals and builds a backing track.</small></span>
+                </label>
+              </fieldset>
+            </section>
+
+            <section class="step">
+              <h2 class="step-title"><span class="num">04</span>Tell us more</h2>
+              <div class="field">
+                <label for="voiceDesc">Describe what you want</label>
+                <textarea id="voiceDesc" maxlength="3000" rows="3" placeholder="Use my hum as the chorus melody. Make it an upbeat indie-pop song about leaving home, with a big final chorus."></textarea>
+              </div>
+              <div class="chips" data-target="voiceDesc" data-append>
+                <button type="button" class="chip">Use my recording as the chorus</button>
+                <button type="button" class="chip">Expand my lyrics into full verses and a chorus</button>
+                <button type="button" class="chip">Build a bridge that lifts into a big final chorus</button>
+                <button type="button" class="chip">Keep my melody but make it a full band arrangement</button>
+              </div>
+              <div class="field">
+                <label for="voiceStyle">Style <span class="opt">optional</span></label>
+                <input id="voiceStyle" maxlength="1000" placeholder="soulful pop, piano and strings" />
+              </div>
+              <div class="field" data-hide-for-voice="inspire">
+                <label for="voiceTitle">Title <span class="opt">optional</span></label>
+                <input id="voiceTitle" maxlength="80" placeholder="My Voice Note Song" />
+              </div>
+              <div class="field" data-hide-for-voice="accompany">
+                <label for="voiceLyrics">Lyrics <span class="opt" id="voiceLyricsHint">(optional — paste what you have and Suno will build on it)</span></label>
+                <textarea id="voiceLyrics" maxlength="5000" rows="5" placeholder="[Verse]&#10;Packed my bags at half past two&#10;&#10;[Chorus]&#10;…"></textarea>
+              </div>
+              <div class="field" data-only-voice="cover">
+                <label for="voiceLength">Song length</label>
+                <select id="voiceLength">
+                  <option value="180">Full song (~3 min)</option>
+                  <option value="240">Long (~4 min)</option>
+                  <option value="120">Medium (~2 min)</option>
+                  <option value="60">Short (~1 min)</option>
+                  <option value="">Same as my recording</option>
+                </select>
+              </div>
+              <div class="field" data-hide-for-voice="inspire">
+                <label for="audioWeight" class="split">Stick to my recording <output id="audioWeightOut">65%</output></label>
+                <input type="range" id="audioWeight" min="0" max="100" value="65" />
+                <div class="range-ends"><span>Loose</span><span>Faithful</span></div>
+              </div>
+            </section>
+          </div>
+
+          <section class="step finish">
+            <details class="advanced">
+              <summary><i class="ph-duotone ph-caret-right" aria-hidden="true"></i>More options</summary>
+              <div class="adv-body">
+                <div class="grid">
+                  <div class="field">
+                    <label for="model">Model</label>
+                    <select id="model">
+                      <option value="V6">V6 — best quality</option>
+                      <option value="V6_WILD">V6 Wild — experimental</option>
+                      <option value="V6_MINI">V6 Mini — fast &amp; light</option>
+                    </select>
+                  </div>
+                  <div class="field" data-hide-for="accompany">
+                    <label for="vocalGender">Voice</label>
+                    <select id="vocalGender">
+                      <option value="">Any</option>
+                      <option value="f">Female</option>
+                      <option value="m">Male</option>
+                    </select>
+                  </div>
+                </div>
+                <div data-hide-in-mode="custom">
+                  <label class="check" data-hide-for="accompany"><input type="checkbox" id="instrumental" /> Instrumental (no vocals)</label>
+                </div>
+                <div class="field">
+                  <label for="negativeTags">Avoid <span class="opt">styles to exclude</span></label>
+                  <input id="negativeTags" maxlength="1000" placeholder="heavy metal, autotune" />
+                </div>
+              </div>
+            </details>
+
+            <p class="error" id="formError" role="alert" hidden></p>
+            <button type="submit" class="go" id="goBtn"><i class="ph-duotone ph-music-notes-plus" aria-hidden="true"></i><span>Create my song</span></button>
+            <p class="fine">Each request makes two versions. Suno keeps songs for about two weeks, so download the ones you love.</p>
+          </section>
+        </form>
+      </section>
+
+      <aside class="results" id="results" aria-live="polite">
+        <div class="results-head">
+          <h2>Your songs</h2>
+          <span id="resultsHead" hidden><button type="button" class="link" id="clearHistory">Clear history</button></span>
+        </div>
+        <div id="jobs"></div>
+      </aside>
+    </div>
   </main>
 
   <footer class="foot">Powered by <a href="https://sunoapi.org" target="_blank" rel="noopener">sunoapi.org</a></footer>
@@ -199,8 +244,8 @@
         <div class="track-tags"></div>
         <audio controls preload="none"></audio>
         <div class="track-actions">
-          <a class="btn-sm dl" target="_blank" rel="noopener" download>⬇ Download</a>
-          <button type="button" class="btn-sm show-lyrics">Lyrics</button>
+          <a class="btn-sm dl" target="_blank" rel="noopener" download><i class="ph-duotone ph-download-simple" aria-hidden="true"></i>Download</a>
+          <button type="button" class="btn-sm show-lyrics"><i class="ph-duotone ph-text-align-left" aria-hidden="true"></i>Lyrics</button>
         </div>
         <pre class="track-lyrics" hidden></pre>
       </div>
